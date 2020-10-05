@@ -74,11 +74,17 @@ def find_nan(df, res_key, headers, patch=False):
 
         # tag all occurences of NaN in the data with True
         # (but not before first or after last actual entry)
-        col['tag'] = (
-            (col.index >= col.first_valid_index()) &
-            (col.index <= col.last_valid_index()) &
-            col.isnull().transpose().values
-        ).transpose()
+        try:
+            col['tag'] = (
+                (col.index >= col.first_valid_index()) &
+                (col.index <= col.last_valid_index()) &
+                col.isnull().transpose().values
+                ).transpose()
+        except TypeError:
+            col['tag'] = col.isna()
+            logger.info('---------------------------------------------')
+            logger.info(message + 'column contains only NaN values')
+            logger.info('---------------------------------------------')
 
         # count missing values
         overview.loc['nan_count', col_name] = col['tag'].sum()

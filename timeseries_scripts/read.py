@@ -31,6 +31,7 @@ def read_entso_e_transparency(
         stacked,
         unstacked,
         append_headers,
+        variable_type,
         **kwargs):
     '''
     Read a .csv file from ENTSO-E TRansparency into a DataFrame.
@@ -83,14 +84,10 @@ def read_entso_e_transparency(
     df_raw.rename(columns=cols, inplace=True)
 
     if dataset_name == 'Actual Generation per Production Type':
-        # keep only renewables columns
-        renewables = {
-            'Solar': 'solar',
-            'Wind Onshore': 'wind_onshore',
-            'Wind Offshore': 'wind_offshore'
-        }
-        df_raw = df_raw[df_raw['variable'].isin(renewables.keys())]
-        df_raw.replace({'variable': renewables}, inplace=True)
+        # keep only renewables columns def. in source variable_type
+        df_raw = df_raw[df_raw['variable'].isin(variable_type.keys())]
+        # rename variable_type names 
+        df_raw.replace({'variable': variable_type}, inplace=True)
 
     if dataset_name == 'Day-ahead Prices':
         # Omit polish price data reported in EUR (keeping PLN prices)
@@ -125,6 +122,9 @@ def read_entso_e_transparency(
         # at this point, only the values we are intereseted in are are left as
         # columns
         df.columns.rename(unstacked, inplace=True)
+        
+        # Remove duplicates and keep only the last entry (assuming the last is the most recent)
+        df = df[~df.index.duplicated(keep="last")]
         df = df.unstack(stacked)
 
         # keep only columns that have at least some nonzero values
@@ -1239,9 +1239,9 @@ def trim_df(
     # expose gaps in the data.
     no_gaps = pd.date_range(start=df.index[0],
                             end=df.index[-1],
-                            freq=res_key)
+                            freq=res_key)    
+    missing_rows = no_gaps.shape[0] - df.shape[0]
     df = df.reindex(index=no_gaps)
-    missing_rows = df.shape[0] - df.shape[0]
     if not missing_rows == 0:
         logger.info(' {:20.20} | {:20.20} | {} missing rows'
                     .format(source_name, dataset_name, missing_rows))
@@ -1267,8 +1267,11 @@ def trim_df(
     # delete zeros before first/after last non-zero value in each column
     for col_name, col in df.iteritems():
         nan_for_zero = col.replace(0, np.nan)
-        slicer = ((col.index <= nan_for_zero.first_valid_index()) |
-                 (col.index >= nan_for_zero.last_valid_index()))
+        try:
+            slicer = ((col.index <= nan_for_zero.first_valid_index()) |
+                      (col.index >= nan_for_zero.last_valid_index()))
+        except TypeError:
+            logger.info('Error taking slice of df.col with NaN values')
         col.loc[slicer] = np.nan
 
     return df
