@@ -12,7 +12,7 @@ ENTSO-E Transparency FTP:
         path: TP_export/AggregatedGenerationPerType/
         filename: '{u_start.year}_{u_start.month}_AggregatedGenerationPerType.csv'
         frequency: monthly
-        start: 2014-12-01
+        start: 2018-12-01
         end: recent
         filetype: csv
         resolution:
@@ -27,6 +27,20 @@ ENTSO-E Transparency FTP:
             ProductionType: variable
             ActualGenerationOutput: generation_actual 
             # not used: 'ActualConsumption'
+        conventional:
+            Fossil Hard coal: hard_coal 
+            Fossil Brown coal/Lignite: lignite 
+            Fossil Gas: gas 
+            Fossil Oil: other_fossil
+            Fossil Coal-derived gas: other_fossil
+            Fossil Peat: other_fossil
+            Fossil Oil Shale: other_fossil
+            Other: other_fossil
+            Hydro Pumped Storage: hydro
+            Hydro Run-of-river and poundage: hydro
+            Hydro Water Reservoir: hydro
+            Fossil Oil: oil
+            Fossil Oil shale: oil 
         renewables:
             Solar: solar
             Wind Onshore: wind_onshore
