@@ -35,6 +35,11 @@ ENTSO-E Transparency FTP:
             Fossil Coal-derived gas: other_fossil
             Fossil Peat: other_fossil
             Fossil Oil Shale: other_fossil
+            Nuclear: nuclear
+            Biomass: biomass
+            Waste: waste
+            Geothermal: geothermal
+            Marine: marine
             Other: other_fossil
             Hydro Pumped Storage: hydro
             Hydro Run-of-river and poundage: hydro
@@ -44,6 +49,7 @@ ENTSO-E Transparency FTP:
             Solar: solar
             Wind Onshore: wind_onshore
             Wind Offshore: wind_offshore
+            Other renewable: other_renewable
         stacked:
             - region
             - variable  ##ProductionType_Name

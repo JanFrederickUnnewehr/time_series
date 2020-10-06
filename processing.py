@@ -608,24 +608,24 @@ entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
 entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 
 
-# # ## Country specific calculations
+# ## Country specific calculations
 
-# # Some of the following operations require the Dataframes to be lexsorted in the columns
+# Some of the following operations require the Dataframes to be lexsorted in the columns
 
-# # In[ ]:
-
-
-# for res_key, df in data_sets.items():
-#     df.sort_index(axis='columns', inplace=True)
+# In[ ]:
 
 
-# # ### Germany
+for res_key, df in data_sets.items():
+    df.sort_index(axis='columns', inplace=True)
 
-# # #### Aggregate German data from individual TSOs
 
-# # The wind and solar in-feed data for the 4 German control areas is summed up and stored in a new column. The column headers are created in the fashion introduced in the read script. Takes 5 seconds to run.
+# ### Germany
 
-# # In[ ]:
+# #### Aggregate German data from individual TSOs
+
+# The wind and solar in-feed data for the 4 German control areas is summed up and stored in a new column. The column headers are created in the fashion introduced in the read script. Takes 5 seconds to run.
+
+# In[ ]:
 
 
 # df = data_sets['15min']
@@ -653,11 +653,11 @@ entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 #         data_sets['15min'][new_col_header].describe()
 
 
-# # ### Italy
+# ### Italy
 
-# # Generation data for Italy come by region (North, Central North, Sicily, etc.) and separately for DSO and TSO, so they need to be agregated in order to get values for the whole country. In the next cell, we sum up the data by region and for each variable-attribute pair present in the Terna dataset header.
+# Generation data for Italy come by region (North, Central North, Sicily, etc.) and separately for DSO and TSO, so they need to be agregated in order to get values for the whole country. In the next cell, we sum up the data by region and for each variable-attribute pair present in the Terna dataset header.
 
-# # In[ ]:
+# In[ ]:
 
 
 # bidding_zones_IT = ['IT_CNOR', 'IT_CSUD', 'IT_NORD', 'IT_SARD', 'IT_SICI', 'IT_SUD']
@@ -683,11 +683,11 @@ entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 #     data_sets['60min'][new_col_header].describe()
 
 
-# # ### Great Britain / United Kingdom
+# ### Great Britain / United Kingdom
 
-# # Data for Great Britain (without Northern Ireland) are disaggregated for DSO and TSO connected generators. We calculate aggregate values.
+# Data for Great Britain (without Northern Ireland) are disaggregated for DSO and TSO connected generators. We calculate aggregate values.
 
-# # In[ ]:
+# In[ ]:
 
 
 # for variable in ['solar', 'wind']:
@@ -709,11 +709,11 @@ entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 #     data_sets['30min'][new_col_header].describe()
 
 
-# # ## Calculate availabilities/profiles
+# ## Calculate availabilities/profiles
 
-# # Calculate profiles, that is, the share of wind/solar capacity producing at a given time.
+# Calculate profiles, that is, the share of wind/solar capacity producing at a given time.
 
-# # In[ ]:
+# In[ ]:
 
 
 # for res_key, df in data_sets.items():
@@ -761,88 +761,88 @@ entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 #         new_col_header
 
 
-# # Some of the following operations require the Dataframes to be lexsorted in the columns
+# Some of the following operations require the Dataframes to be lexsorted in the columns
 
-# # In[ ]:
-
-
-# for res_key, df in data_sets.items():
-#     df.sort_index(axis='columns', inplace=True)
+# In[ ]:
 
 
-# # Another savepoint
-
-# # In[ ]:
-
-
-# os.chdir(temp_path)
-# data_sets['15min'].to_pickle('calc_15.pickle')
-# data_sets['30min'].to_pickle('calc_30.pickle')
-# data_sets['60min'].to_pickle('calc_60.pickle')
+for res_key, df in data_sets.items():
+    df.sort_index(axis='columns', inplace=True)
 
 
-# # In[ ]:
+# Another savepoint
+
+# In[ ]:
 
 
-# os.chdir(temp_path)
-# data_sets = {}
-# data_sets['15min'] = pd.read_pickle('calc_15.pickle')
-# data_sets['30min'] = pd.read_pickle('calc_30.pickle')
-# data_sets['60min'] = pd.read_pickle('calc_60.pickle')
-# entso_e = {}
-# entso_e['15min'] = pd.read_pickle('patched_entso_e_15.pickle')
-# entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
-# entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
+os.chdir(temp_path)
+data_sets['15min'].to_pickle('calc_15.pickle')
+data_sets['30min'].to_pickle('calc_30.pickle')
+data_sets['60min'].to_pickle('calc_60.pickle')
 
 
-# # ## Resample higher frequencies to 60'
-
-# # Some data comes in 15 or 30-minute intervals (i.e. German or British renewable generation), other in 60-minutes (i.e. load data from ENTSO-E and Prices). We resample the 15 and 30-minute data to hourly resolution and append it to the 60-minutes dataset.
-# # 
-# # The `.resample('H').mean()` methods calculates the means from the values for 4 quarter hours [:00, :15, :30, :45] of an hour values, inserts that for :00 and drops the other 3 entries. Takes 15 seconds to run.
-
-# # In[ ]:
+# In[ ]:
 
 
-# for ds in [entso_e]: #[data_sets, entso_e]:
-#     for res_key, df in ds.items():
-#         if res_key == '60min':
-#             continue
-#     #    # Resample first the marker column
-#     #    marker_resampled = df['interpolated_values'].groupby(
-#     #        pd.Grouper(freq='60Min', closed='left', label='left')
-#     #    ).agg(resample_markers, drop_region='DE_AT_LU')
-#     #    marker_resampled = marker_resampled.reindex(ds['60min'].index)
+os.chdir(temp_path)
+data_sets = {}
+data_sets['15min'] = pd.read_pickle('calc_15.pickle')
+data_sets['30min'] = pd.read_pickle('calc_30.pickle')
+data_sets['60min'] = pd.read_pickle('calc_60.pickle')
+entso_e = {}
+entso_e['15min'] = pd.read_pickle('patched_entso_e_15.pickle')
+entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
+entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 
-#     #    # Glue condensed 15/30 min marker onto 60 min marker
-#     #    ds['60min'].loc[:, 'interpolated_values'] = glue_markers(
-#     #        ds['60min']['interpolated_values'],
-#     #        marker_resampled.reindex(ds['60min'].index))
 
-#     #    # Drop DE_AT_LU bidding zone data from the 15 minute resolution data to
-#     #    # be resampled since it is already provided in 60 min resolution by
-#     #    # ENTSO-E Transparency
-#     #    df = df.drop('DE_AT_LU', axis=1, errors='ignore')
+# ## Resample higher frequencies to 60'
 
-#         # Do the resampling
-#         resampled = df.resample('H').mean()
-#         resampled.columns = resampled.columns.map(mark_own_calc)
-#         resampled.columns.names = headers
+# Some data comes in 15 or 30-minute intervals (i.e. German or British renewable generation), other in 60-minutes (i.e. load data from ENTSO-E and Prices). We resample the 15 and 30-minute data to hourly resolution and append it to the 60-minutes dataset.
+# 
+# The `.resample('H').mean()` methods calculates the means from the values for 4 quarter hours [:00, :15, :30, :45] of an hour values, inserts that for :00 and drops the other 3 entries. Takes 15 seconds to run.
 
-#         # filter out columns already represented in hourly data
-#         data_cols = ds['60min'].columns.droplevel(['source', 'web', 'unit'])
-#         tuples = [col for col in resampled.columns if not col[:3] in data_cols]
-#         add_cols = pd.MultiIndex.from_tuples(tuples, names=headers)
-#         resampled = resampled[add_cols]
+# In[ ]:
+
+
+for ds in [entso_e]: #[data_sets, entso_e]:
+    for res_key, df in ds.items():
+        if res_key == '60min':
+            continue
+    #    # Resample first the marker column
+    #    marker_resampled = df['interpolated_values'].groupby(
+    #        pd.Grouper(freq='60Min', closed='left', label='left')
+    #    ).agg(resample_markers, drop_region='DE_AT_LU')
+    #    marker_resampled = marker_resampled.reindex(ds['60min'].index)
+
+    #    # Glue condensed 15/30 min marker onto 60 min marker
+    #    ds['60min'].loc[:, 'interpolated_values'] = glue_markers(
+    #        ds['60min']['interpolated_values'],
+    #        marker_resampled.reindex(ds['60min'].index))
+
+    #    # Drop DE_AT_LU bidding zone data from the 15 minute resolution data to
+    #    # be resampled since it is already provided in 60 min resolution by
+    #    # ENTSO-E Transparency
+    #    df = df.drop('DE_AT_LU', axis=1, errors='ignore')
+
+        # Do the resampling
+        resampled = df.resample('H').mean()
+        resampled.columns = resampled.columns.map(mark_own_calc)
+        resampled.columns.names = headers
+
+        # filter out columns already represented in hourly data
+        data_cols = ds['60min'].columns.droplevel(['source', 'web', 'unit'])
+        tuples = [col for col in resampled.columns if not col[:3] in data_cols]
+        add_cols = pd.MultiIndex.from_tuples(tuples, names=headers)
+        resampled = resampled[add_cols]
         
-#         # Round the resampled columns
-#         for col in resampled.columns:
-#             if col[2] == 'profile':
-#                 resampled.loc[:, col] = resampled.loc[:, col].round(4)
-#             else:
-#                 resampled.loc[:, col] = resampled.loc[:, col].round(0)
+        # Round the resampled columns
+        for col in resampled.columns:
+            if col[2] == 'profile':
+                resampled.loc[:, col] = resampled.loc[:, col].round(4)
+            else:
+                resampled.loc[:, col] = resampled.loc[:, col].round(0)
 
-#         ds['60min'] = ds['60min'].combine_first(resampled)
+        ds['60min'] = ds['60min'].combine_first(resampled)
 
 
 # # ## Fill columns not retrieved directly from TSO webites with  ENTSO-E Transparency data
