@@ -186,8 +186,8 @@ logstream.setLevel(logging.DEBUG)
 # In[34]:
 
 
-start_from_user = date(2018, 12, 31)
-end_from_user = date(2019, 1, 30)
+start_from_user = date(2018, 12, 15)
+end_from_user = date(2020, 1, 15)
 
 
 # ## Select download source
@@ -608,531 +608,531 @@ entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
 entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 
 
-# ## Country specific calculations
+# # ## Country specific calculations
 
-# Some of the following operations require the Dataframes to be lexsorted in the columns
+# # Some of the following operations require the Dataframes to be lexsorted in the columns
 
-# In[ ]:
-
-
-for res_key, df in data_sets.items():
-    df.sort_index(axis='columns', inplace=True)
+# # In[ ]:
 
 
-# ### Germany
-
-# #### Aggregate German data from individual TSOs
-
-# The wind and solar in-feed data for the 4 German control areas is summed up and stored in a new column. The column headers are created in the fashion introduced in the read script. Takes 5 seconds to run.
-
-# In[ ]:
+# for res_key, df in data_sets.items():
+#     df.sort_index(axis='columns', inplace=True)
 
 
-df = data_sets['15min']
-control_areas_DE = ['DE_50hertz', 'DE_amprion', 'DE_tennet', 'DE_transnetbw']
+# # ### Germany
 
-for variable in ['solar', 'wind', 'wind_onshore', 'wind_offshore']:
-    # we could also include 'generation_forecast'
-    for attribute in ['generation_actual']:
-        # Calculate aggregate German generation
-        sum_frame = df.loc[:, (control_areas_DE, variable, attribute)]
-        sum_frame.head()        
-        sum_col = sum_frame.sum(axis='columns', skipna=False).to_frame().round(0)
+# # #### Aggregate German data from individual TSOs
 
-        # Create a new MultiIndex
-        new_col_header = {
-            'region': 'DE',
-            'variable': variable,
-            'attribute': attribute,
-            'source': 'own calculation based on German TSOs',
-            'web': '',
-            'unit': 'MW'
-        }
-        new_col_header = tuple(new_col_header[level] for level in headers)
-        data_sets['15min'][new_col_header] = sum_col
-        data_sets['15min'][new_col_header].describe()
+# # The wind and solar in-feed data for the 4 German control areas is summed up and stored in a new column. The column headers are created in the fashion introduced in the read script. Takes 5 seconds to run.
+
+# # In[ ]:
 
 
-# ### Italy
+# df = data_sets['15min']
+# control_areas_DE = ['DE_50hertz', 'DE_amprion', 'DE_tennet', 'DE_transnetbw']
 
-# Generation data for Italy come by region (North, Central North, Sicily, etc.) and separately for DSO and TSO, so they need to be agregated in order to get values for the whole country. In the next cell, we sum up the data by region and for each variable-attribute pair present in the Terna dataset header.
+# for variable in ['solar', 'wind', 'wind_onshore', 'wind_offshore']:
+#     # we could also include 'generation_forecast'
+#     for attribute in ['generation_actual']:
+#         # Calculate aggregate German generation
+#         sum_frame = df.loc[:, (control_areas_DE, variable, attribute)]
+#         sum_frame.head()        
+#         sum_col = sum_frame.sum(axis='columns', skipna=False).to_frame().round(0)
 
-# In[ ]:
+#         # Create a new MultiIndex
+#         new_col_header = {
+#             'region': 'DE',
+#             'variable': variable,
+#             'attribute': attribute,
+#             'source': 'own calculation based on German TSOs',
+#             'web': '',
+#             'unit': 'MW'
+#         }
+#         new_col_header = tuple(new_col_header[level] for level in headers)
+#         data_sets['15min'][new_col_header] = sum_col
+#         data_sets['15min'][new_col_header].describe()
 
 
-bidding_zones_IT = ['IT_CNOR', 'IT_CSUD', 'IT_NORD', 'IT_SARD', 'IT_SICI', 'IT_SUD']
-attributes = ['generation_actual', 'generation_actual_dso', 'generation_actual_tso']
+# # ### Italy
 
-for variable in ['solar', 'wind_onshore']:
-    sum_col = (
-        data_sets['60min']
-        .loc[:, (bidding_zones_IT, variable, attributes)]
-        .sum(axis='columns', skipna=False))
+# # Generation data for Italy come by region (North, Central North, Sicily, etc.) and separately for DSO and TSO, so they need to be agregated in order to get values for the whole country. In the next cell, we sum up the data by region and for each variable-attribute pair present in the Terna dataset header.
+
+# # In[ ]:
+
+
+# bidding_zones_IT = ['IT_CNOR', 'IT_CSUD', 'IT_NORD', 'IT_SARD', 'IT_SICI', 'IT_SUD']
+# attributes = ['generation_actual', 'generation_actual_dso', 'generation_actual_tso']
+
+# for variable in ['solar', 'wind_onshore']:
+#     sum_col = (
+#         data_sets['60min']
+#         .loc[:, (bidding_zones_IT, variable, attributes)]
+#         .sum(axis='columns', skipna=False))
     
-    # Create a new MultiIndex
-    new_col_header = {
-        'region': 'IT',
-        'variable': variable,
-        'attribute': 'generation_actual',
-        'source': 'own calculation based on Terna',
-        'web': 'https://www.terna.it/SistemaElettrico/TransparencyReport/Generation/Forecastandactualgeneration.aspx',
-        'unit': 'MW'
-    }
-    new_col_header = tuple(new_col_header[level] for level in headers)
-    data_sets['60min'][new_col_header] = sum_col
-    data_sets['60min'][new_col_header].describe()
+#     # Create a new MultiIndex
+#     new_col_header = {
+#         'region': 'IT',
+#         'variable': variable,
+#         'attribute': 'generation_actual',
+#         'source': 'own calculation based on Terna',
+#         'web': 'https://www.terna.it/SistemaElettrico/TransparencyReport/Generation/Forecastandactualgeneration.aspx',
+#         'unit': 'MW'
+#     }
+#     new_col_header = tuple(new_col_header[level] for level in headers)
+#     data_sets['60min'][new_col_header] = sum_col
+#     data_sets['60min'][new_col_header].describe()
 
 
-# ### Great Britain / United Kingdom
+# # ### Great Britain / United Kingdom
 
-# Data for Great Britain (without Northern Ireland) are disaggregated for DSO and TSO connected generators. We calculate aggregate values.
+# # Data for Great Britain (without Northern Ireland) are disaggregated for DSO and TSO connected generators. We calculate aggregate values.
 
-# In[ ]:
+# # In[ ]:
 
 
-for variable in ['solar', 'wind']:
-    sum_col = (data_sets['30min']
-                .loc[:, ('GB_GBN', variable, ['generation_actual_dso', 'generation_actual_tso'])]
-                .sum(axis='columns', skipna=False))
+# for variable in ['solar', 'wind']:
+#     sum_col = (data_sets['30min']
+#                 .loc[:, ('GB_GBN', variable, ['generation_actual_dso', 'generation_actual_tso'])]
+#                 .sum(axis='columns', skipna=False))
     
-    # Create a new MultiIndex
-    new_col_header = {
-        'region' : 'GB_GBN',
-        'variable' : variable,
-        'attribute' : 'generation_actual',
-        'source': 'own calculation based on Elexon and National Grid',
-        'web': '',
-        'unit': 'MW'
-    }
-    new_col_header = tuple(new_col_header[level] for level in headers)
-    data_sets['30min'][new_col_header] = sum_col
-    data_sets['30min'][new_col_header].describe()
+#     # Create a new MultiIndex
+#     new_col_header = {
+#         'region' : 'GB_GBN',
+#         'variable' : variable,
+#         'attribute' : 'generation_actual',
+#         'source': 'own calculation based on Elexon and National Grid',
+#         'web': '',
+#         'unit': 'MW'
+#     }
+#     new_col_header = tuple(new_col_header[level] for level in headers)
+#     data_sets['30min'][new_col_header] = sum_col
+#     data_sets['30min'][new_col_header].describe()
 
 
-# ## Calculate availabilities/profiles
+# # ## Calculate availabilities/profiles
 
-# Calculate profiles, that is, the share of wind/solar capacity producing at a given time.
+# # Calculate profiles, that is, the share of wind/solar capacity producing at a given time.
 
-# In[ ]:
+# # In[ ]:
 
 
-for res_key, df in data_sets.items():
-    if res_key == '60min':
-        continue
-    for col_name, col in df.loc[:,(slice(None), slice(None), 'capacity')].iteritems():
-        # Calculate the profile column
-        kwargs = {'key': (col_name[0], col_name[1], 'generation_actual'),
-            'level': ['region', 'variable', 'attribute'],
-            'axis': 'columns', 'drop_level': False}
-        generation_col = df.xs(**kwargs)
-        # take ENTSO-E transparency data if there is none from TSO
-        if generation_col.size == 0:
-            try:
-                generation_col = entso_e[res_key].xs(**kwargs)
-            except KeyError:
-                continue
-            if generation_col.size == 0:
-                continue
-        profile_col = generation_col.divide(col, axis='index').round(4)
+# for res_key, df in data_sets.items():
+#     if res_key == '60min':
+#         continue
+#     for col_name, col in df.loc[:,(slice(None), slice(None), 'capacity')].iteritems():
+#         # Calculate the profile column
+#         kwargs = {'key': (col_name[0], col_name[1], 'generation_actual'),
+#             'level': ['region', 'variable', 'attribute'],
+#             'axis': 'columns', 'drop_level': False}
+#         generation_col = df.xs(**kwargs)
+#         # take ENTSO-E transparency data if there is none from TSO
+#         if generation_col.size == 0:
+#             try:
+#                 generation_col = entso_e[res_key].xs(**kwargs)
+#             except KeyError:
+#                 continue
+#             if generation_col.size == 0:
+#                 continue
+#         profile_col = generation_col.divide(col, axis='index').round(4)
 
-        # Create a new MultiIndex
-        new_col_header = {
-            'region': '{region}',
-            'variable': '{variable}',
-            'attribute': 'profile',
-            'source': 'own calculation based on {source}',
-            'web': '',
-            'unit': 'fraction'
-        }
+#         # Create a new MultiIndex
+#         new_col_header = {
+#             'region': '{region}',
+#             'variable': '{variable}',
+#             'attribute': 'profile',
+#             'source': 'own calculation based on {source}',
+#             'web': '',
+#             'unit': 'fraction'
+#         }
         
-        source_capacity = col_name[3]
-        source_generation = generation_col.columns.get_level_values('source')[0]
-        if source_capacity == source_generation:
-            source = source_capacity
-        else:
-            source = (source_generation + ' and ' + source_capacity).replace('own calculation based on ', '')
-        new_col_header = tuple(new_col_header[level].format(region=col_name[0], variable=col_name[1], source=source)
-                                for level in headers)
-        data_sets[res_key][new_col_header] = profile_col
-        data_sets[res_key][new_col_header].describe()
+#         source_capacity = col_name[3]
+#         source_generation = generation_col.columns.get_level_values('source')[0]
+#         if source_capacity == source_generation:
+#             source = source_capacity
+#         else:
+#             source = (source_generation + ' and ' + source_capacity).replace('own calculation based on ', '')
+#         new_col_header = tuple(new_col_header[level].format(region=col_name[0], variable=col_name[1], source=source)
+#                                 for level in headers)
+#         data_sets[res_key][new_col_header] = profile_col
+#         data_sets[res_key][new_col_header].describe()
         
-        # Append profile to the dataset
-        df = df.combine_first(profile_col)
-        new_col_header
+#         # Append profile to the dataset
+#         df = df.combine_first(profile_col)
+#         new_col_header
 
 
-# Some of the following operations require the Dataframes to be lexsorted in the columns
+# # Some of the following operations require the Dataframes to be lexsorted in the columns
 
-# In[ ]:
-
-
-for res_key, df in data_sets.items():
-    df.sort_index(axis='columns', inplace=True)
+# # In[ ]:
 
 
-# Another savepoint
-
-# In[ ]:
-
-
-os.chdir(temp_path)
-data_sets['15min'].to_pickle('calc_15.pickle')
-data_sets['30min'].to_pickle('calc_30.pickle')
-data_sets['60min'].to_pickle('calc_60.pickle')
+# for res_key, df in data_sets.items():
+#     df.sort_index(axis='columns', inplace=True)
 
 
-# In[ ]:
+# # Another savepoint
+
+# # In[ ]:
 
 
-os.chdir(temp_path)
-data_sets = {}
-data_sets['15min'] = pd.read_pickle('calc_15.pickle')
-data_sets['30min'] = pd.read_pickle('calc_30.pickle')
-data_sets['60min'] = pd.read_pickle('calc_60.pickle')
-entso_e = {}
-entso_e['15min'] = pd.read_pickle('patched_entso_e_15.pickle')
-entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
-entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
+# os.chdir(temp_path)
+# data_sets['15min'].to_pickle('calc_15.pickle')
+# data_sets['30min'].to_pickle('calc_30.pickle')
+# data_sets['60min'].to_pickle('calc_60.pickle')
 
 
-# ## Resample higher frequencies to 60'
-
-# Some data comes in 15 or 30-minute intervals (i.e. German or British renewable generation), other in 60-minutes (i.e. load data from ENTSO-E and Prices). We resample the 15 and 30-minute data to hourly resolution and append it to the 60-minutes dataset.
-# 
-# The `.resample('H').mean()` methods calculates the means from the values for 4 quarter hours [:00, :15, :30, :45] of an hour values, inserts that for :00 and drops the other 3 entries. Takes 15 seconds to run.
-
-# In[ ]:
+# # In[ ]:
 
 
-for ds in [data_sets, entso_e]:
-    for res_key, df in ds.items():
-        if res_key == '60min':
-            continue
-    #    # Resample first the marker column
-    #    marker_resampled = df['interpolated_values'].groupby(
-    #        pd.Grouper(freq='60Min', closed='left', label='left')
-    #    ).agg(resample_markers, drop_region='DE_AT_LU')
-    #    marker_resampled = marker_resampled.reindex(ds['60min'].index)
+# os.chdir(temp_path)
+# data_sets = {}
+# data_sets['15min'] = pd.read_pickle('calc_15.pickle')
+# data_sets['30min'] = pd.read_pickle('calc_30.pickle')
+# data_sets['60min'] = pd.read_pickle('calc_60.pickle')
+# entso_e = {}
+# entso_e['15min'] = pd.read_pickle('patched_entso_e_15.pickle')
+# entso_e['30min'] = pd.read_pickle('patched_entso_e_30.pickle')
+# entso_e['60min'] = pd.read_pickle('patched_entso_e_60.pickle')
 
-    #    # Glue condensed 15/30 min marker onto 60 min marker
-    #    ds['60min'].loc[:, 'interpolated_values'] = glue_markers(
-    #        ds['60min']['interpolated_values'],
-    #        marker_resampled.reindex(ds['60min'].index))
 
-    #    # Drop DE_AT_LU bidding zone data from the 15 minute resolution data to
-    #    # be resampled since it is already provided in 60 min resolution by
-    #    # ENTSO-E Transparency
-    #    df = df.drop('DE_AT_LU', axis=1, errors='ignore')
+# # ## Resample higher frequencies to 60'
 
-        # Do the resampling
-        resampled = df.resample('H').mean()
-        resampled.columns = resampled.columns.map(mark_own_calc)
-        resampled.columns.names = headers
+# # Some data comes in 15 or 30-minute intervals (i.e. German or British renewable generation), other in 60-minutes (i.e. load data from ENTSO-E and Prices). We resample the 15 and 30-minute data to hourly resolution and append it to the 60-minutes dataset.
+# # 
+# # The `.resample('H').mean()` methods calculates the means from the values for 4 quarter hours [:00, :15, :30, :45] of an hour values, inserts that for :00 and drops the other 3 entries. Takes 15 seconds to run.
 
-        # filter out columns already represented in hourly data
-        data_cols = ds['60min'].columns.droplevel(['source', 'web', 'unit'])
-        tuples = [col for col in resampled.columns if not col[:3] in data_cols]
-        add_cols = pd.MultiIndex.from_tuples(tuples, names=headers)
-        resampled = resampled[add_cols]
+# # In[ ]:
+
+
+# for ds in [entso_e]: #[data_sets, entso_e]:
+#     for res_key, df in ds.items():
+#         if res_key == '60min':
+#             continue
+#     #    # Resample first the marker column
+#     #    marker_resampled = df['interpolated_values'].groupby(
+#     #        pd.Grouper(freq='60Min', closed='left', label='left')
+#     #    ).agg(resample_markers, drop_region='DE_AT_LU')
+#     #    marker_resampled = marker_resampled.reindex(ds['60min'].index)
+
+#     #    # Glue condensed 15/30 min marker onto 60 min marker
+#     #    ds['60min'].loc[:, 'interpolated_values'] = glue_markers(
+#     #        ds['60min']['interpolated_values'],
+#     #        marker_resampled.reindex(ds['60min'].index))
+
+#     #    # Drop DE_AT_LU bidding zone data from the 15 minute resolution data to
+#     #    # be resampled since it is already provided in 60 min resolution by
+#     #    # ENTSO-E Transparency
+#     #    df = df.drop('DE_AT_LU', axis=1, errors='ignore')
+
+#         # Do the resampling
+#         resampled = df.resample('H').mean()
+#         resampled.columns = resampled.columns.map(mark_own_calc)
+#         resampled.columns.names = headers
+
+#         # filter out columns already represented in hourly data
+#         data_cols = ds['60min'].columns.droplevel(['source', 'web', 'unit'])
+#         tuples = [col for col in resampled.columns if not col[:3] in data_cols]
+#         add_cols = pd.MultiIndex.from_tuples(tuples, names=headers)
+#         resampled = resampled[add_cols]
         
-        # Round the resampled columns
-        for col in resampled.columns:
-            if col[2] == 'profile':
-                resampled.loc[:, col] = resampled.loc[:, col].round(4)
-            else:
-                resampled.loc[:, col] = resampled.loc[:, col].round(0)
-
-        ds['60min'] = ds['60min'].combine_first(resampled)
-
-
-# ## Fill columns not retrieved directly from TSO webites with  ENTSO-E Transparency data
-
-# In[ ]:
-
-
-data_cols = data_sets['60min'].columns.droplevel(['source', 'web', 'unit'])
-
-for res_key, df in entso_e.items():
-      # Combine with TSO data
-
-#     # Copy entire 30min data from ENTSO-E if there is no data from TSO
-    if data_sets[res_key].empty:
-          data_sets[res_key] = df
-
-    else:
-        # Keep only region, variable, attribute in MultiIndex for comparison
-        # Compare columns from ENTSO-E against TSO's, keep which we don't have yet
-        cols = [col for col in df.columns if not col[:3] in data_cols]
-        add_cols = pd.MultiIndex.from_tuples(cols, names=headers)
-        data_sets[res_key] = data_sets[res_key].combine_first(df[add_cols])
-
-#         # Add the ENTSO-E markers (but only for the columns actually copied)
-#         add_cols = ['_'.join(col[:3]) for col in tuples]
-#         # Spread marker column out over a DataFrame for easiser comparison
-#         # Filter out everey second column, which contains the delimiter " | "
-#         # from the marker
-#         marker_table = (df['interpolated_values'].str.split(' | ', expand=True)
-#                         .filter(regex='^\d*[02468]$', axis='columns'))
-#         # Replace cells with markers marking columns not copied with NaNs
-#         marker_table[~marker_table.isin(add_cols)] = np.nan
-
-#         for col_name, col in marker_table.iteritems():
-#             if col_name == 0:
-#                 marker_entso_e = col
+#         # Round the resampled columns
+#         for col in resampled.columns:
+#             if col[2] == 'profile':
+#                 resampled.loc[:, col] = resampled.loc[:, col].round(4)
 #             else:
-#                 marker_entso_e = glue_markers(marker_entso_e, col)
+#                 resampled.loc[:, col] = resampled.loc[:, col].round(0)
 
-#         # Glue ENTSO-E marker onto our old marker
-#         marker = data_sets[res_key]['interpolated_values']
-#         data_sets[res_key].loc[:, 'interpolated_values'] = glue_markers(
-#             marker, df['interpolated_values'].reindex(marker.index))
+#         ds['60min'] = ds['60min'].combine_first(resampled)
 
 
-# ## Insert a column with Central European (Summer-)time
+# # ## Fill columns not retrieved directly from TSO webites with  ENTSO-E Transparency data
 
-# The index column of th data sets defines the start of the timeperiod represented by each row of that data set in **UTC** time. We include an additional column for the **CE(S)T** Central European (Summer-) Time, as this might help aligning the output data with other data sources.
+# # In[ ]:
 
-# In[ ]:
 
+# data_cols = data_sets['60min'].columns.droplevel(['source', 'web', 'unit'])
 
-info_cols = {'utc': 'utc_timestamp',
-              'cet': 'cet_cest_timestamp'}
+# for res_key, df in entso_e.items():
+#       # Combine with TSO data
 
+# #     # Copy entire 30min data from ENTSO-E if there is no data from TSO
+#     if data_sets[res_key].empty:
+#           data_sets[res_key] = df
 
-# In[ ]:
+#     else:
+#         # Keep only region, variable, attribute in MultiIndex for comparison
+#         # Compare columns from ENTSO-E against TSO's, keep which we don't have yet
+#         cols = [col for col in df.columns if not col[:3] in data_cols]
+#         add_cols = pd.MultiIndex.from_tuples(cols, names=headers)
+#         data_sets[res_key] = data_sets[res_key].combine_first(df[add_cols])
 
+# #         # Add the ENTSO-E markers (but only for the columns actually copied)
+# #         add_cols = ['_'.join(col[:3]) for col in tuples]
+# #         # Spread marker column out over a DataFrame for easiser comparison
+# #         # Filter out everey second column, which contains the delimiter " | "
+# #         # from the marker
+# #         marker_table = (df['interpolated_values'].str.split(' | ', expand=True)
+# #                         .filter(regex='^\d*[02468]$', axis='columns'))
+# #         # Replace cells with markers marking columns not copied with NaNs
+# #         marker_table[~marker_table.isin(add_cols)] = np.nan
 
-for ds in [data_sets, entso_e]:
-    for res_key, df in ds.items():
-        if df.empty:
-            continue
-        df.index.rename(info_cols['utc'], inplace=True)
-        df.insert(0, info_cols['cet'],
-                  df.index.tz_localize('UTC').tz_convert('CET'))
+# #         for col_name, col in marker_table.iteritems():
+# #             if col_name == 0:
+# #                 marker_entso_e = col
+# #             else:
+# #                 marker_entso_e = glue_markers(marker_entso_e, col)
 
+# #         # Glue ENTSO-E marker onto our old marker
+# #         marker = data_sets[res_key]['interpolated_values']
+# #         data_sets[res_key].loc[:, 'interpolated_values'] = glue_markers(
+# #             marker, df['interpolated_values'].reindex(marker.index))
 
-# # Create a final savepoint
 
-# In[ ]:
+# # ## Insert a column with Central European (Summer-)time
 
+# # The index column of th data sets defines the start of the timeperiod represented by each row of that data set in **UTC** time. We include an additional column for the **CE(S)T** Central European (Summer-) Time, as this might help aligning the output data with other data sources.
 
-data_sets['15min'].to_pickle('final_15.pickle')
-data_sets['30min'].to_pickle('final_30.pickle')
-data_sets['60min'].to_pickle('final_60.pickle')
-#entso_e['15min'].to_pickle('final_entso_e_15.pickle')
-#entso_e['30min'].to_pickle('final_entso_e_30.pickle')
-#entso_e['60min'].to_pickle('final_entso_e_60.pickle')
+# # In[ ]:
 
 
-# In[ ]:
+# info_cols = {'utc': 'utc_timestamp',
+#               'cet': 'cet_cest_timestamp'}
 
 
-os.chdir(temp_path)
-data_sets = {}
-data_sets['15min'] = pd.read_pickle('final_15.pickle')
-data_sets['30min'] = pd.read_pickle('final_30.pickle')
-data_sets['60min'] = pd.read_pickle('final_60.pickle')
-#entso_e = {}
-#entso_e['15min'] = pd.read_pickle('final_entso_e_15.pickle')
-#entso_e['30min'] = pd.read_pickle('final_entso_e_30.pickle')
-#entso_e['60min'] = pd.read_pickle('final_entso_e_60.pickle')
+# # In[ ]:
 
 
-# In[ ]:
+# for ds in [data_sets, entso_e]:
+#     for res_key, df in ds.items():
+#         if df.empty:
+#             continue
+#         df.index.rename(info_cols['utc'], inplace=True)
+#         df.insert(0, info_cols['cet'],
+#                   df.index.tz_localize('UTC').tz_convert('CET'))
 
 
-combined = data_sets
+# # # Create a final savepoint
 
+# # In[ ]:
 
-# Show the column names contained in the final DataFrame in a table
 
-# In[ ]:
+# data_sets['15min'].to_pickle('final_15.pickle')
+# data_sets['30min'].to_pickle('final_30.pickle')
+# data_sets['60min'].to_pickle('final_60.pickle')
+# #entso_e['15min'].to_pickle('final_entso_e_15.pickle')
+# #entso_e['30min'].to_pickle('final_entso_e_30.pickle')
+# #entso_e['60min'].to_pickle('final_entso_e_60.pickle')
 
 
-col_info = pd.DataFrame()
-df = combined['60min']
-for level in df.columns.names:
-    col_info[level] = df.columns.get_level_values(level)
+# # In[ ]:
 
-col_info
 
+# os.chdir(temp_path)
+# data_sets = {}
+# data_sets['15min'] = pd.read_pickle('final_15.pickle')
+# data_sets['30min'] = pd.read_pickle('final_30.pickle')
+# data_sets['60min'] = pd.read_pickle('final_60.pickle')
+# #entso_e = {}
+# #entso_e['15min'] = pd.read_pickle('final_entso_e_15.pickle')
+# #entso_e['30min'] = pd.read_pickle('final_entso_e_30.pickle')
+# #entso_e['60min'] = pd.read_pickle('final_entso_e_60.pickle')
 
-# # Write data to disk
 
-# This section: Save as [Data Package](http://data.okfn.org/doc/tabular-data-package) (data in CSV, metadata in JSON file). All files are saved in the directory of this notebook. Alternative file formats (SQL, XLSX) are also exported. Takes about 1 hour to run.
+# # In[ ]:
 
-# ## Limit time range
-# Cut off the data outside of `[start_from_user:end_from_user]`
 
-# In[ ]:
+# combined = data_sets
 
 
-for res_key, df in combined.items():
-    # In order to make sure that the respective time period is covered in both
-    # UTC and CE(S)T, we set the start in CE(S)T, but the end in UTC
-    if start_from_user:
-        start_from_user = (
-            pytz.timezone('Europe/Brussels')
-            .localize(datetime.combine(start_from_user, time()))
-            .astimezone(pytz.timezone('UTC')))
-    if end_from_user:
-        end_from_user = (
-            pytz.timezone('UTC')
-            .localize(datetime.combine(end_from_user, time()))
-            # Appropriate offset to inlude the end of period
-            + timedelta(days=1, minutes=-int(res_key[:2])))
-    # Then cut off the data_set
-    data_sets[res_key] = df.loc[start_from_user:end_from_user, :]
+# # Show the column names contained in the final DataFrame in a table
 
+# # In[ ]:
 
-# ## Different shapes
 
-# Data are provided in three different "shapes": 
-# - SingleIndex (easy to read for humans, compatible with datapackage standard, small file size)
-#   - Fileformat: CSV, SQLite
-# - MultiIndex (easy to read into GAMS, not compatible with datapackage standard, small file size)
-#   - Fileformat: CSV, Excel
-# - Stacked (compatible with data package standard, large file size, many rows, too many for Excel) 
-#   - Fileformat: CSV
-# 
-# The different shapes need to be created internally befor they can be saved to files. Takes about 1 minute to run.
+# col_info = pd.DataFrame()
+# df = combined['60min']
+# for level in df.columns.names:
+#     col_info[level] = df.columns.get_level_values(level)
 
-# In[ ]:
+# col_info
 
 
-combined_singleindex = {}
-combined_multiindex = {}
-combined_stacked = {}
-for res_key, df in combined.items():
-    if df.empty:
-        continue
+# # # Write data to disk
 
-#    # Round floating point numbers to 2 digits
-#    for col_name, col in df.iteritems():
-#        if col_name[0] in info_cols.values():
-#            pass
-#        elif col_name[2] == 'profile':
-#            df[col_name] = col.round(4)
-#        else:
-#            df[col_name] = col.round(3)
+# # This section: Save as [Data Package](http://data.okfn.org/doc/tabular-data-package) (data in CSV, metadata in JSON file). All files are saved in the directory of this notebook. Alternative file formats (SQL, XLSX) are also exported. Takes about 1 hour to run.
 
-    # MultIndex
-    combined_multiindex[res_key + '_multiindex'] = df
+# # ## Limit time range
+# # Cut off the data outside of `[start_from_user:end_from_user]`
 
-    # SingleIndex
-    df_singleindex = df.copy()
-    # use first 3 levels of multiindex to create singleindex
-    df_singleindex.columns = [
-        col_name[0] if col_name[0] in info_cols.values()
-        else '_'.join([level for level in col_name[0:3] if not level == ''])
-        for col_name in df.columns.values]
+# # In[ ]:
 
-    combined_singleindex[res_key + '_singleindex'] = df_singleindex
 
-    # Stacked
-    stacked = df.copy().drop(columns=info_cols['cet'], level=0)
-    stacked.columns = stacked.columns.droplevel(['source', 'web', 'unit'])
-    # Concatenate all columns below each other (="stack").
-    # df.transpose().stack() is faster than stacking all column levels
-    # seperately
-    stacked = stacked.transpose().stack(dropna=True).to_frame(name='data')
-    combined_stacked[res_key + '_stacked'] = stacked
+# for res_key, df in combined.items():
+#     # In order to make sure that the respective time period is covered in both
+#     # UTC and CE(S)T, we set the start in CE(S)T, but the end in UTC
+#     if start_from_user:
+#         start_from_user = (
+#             pytz.timezone('Europe/Brussels')
+#             .localize(datetime.combine(start_from_user, time()))
+#             .astimezone(pytz.timezone('UTC')))
+#     if end_from_user:
+#         end_from_user = (
+#             pytz.timezone('UTC')
+#             .localize(datetime.combine(end_from_user, time()))
+#             # Appropriate offset to inlude the end of period
+#             + timedelta(days=1, minutes=-int(res_key[:2])))
+#     # Then cut off the data_set
+#     data_sets[res_key] = df.loc[start_from_user:end_from_user, :]
 
 
-# ## Write to SQLite-database
+# # ## Different shapes
 
-# This file format is required for the filtering function on the OPSD website. This takes ~3 minutes to complete.
+# # Data are provided in three different "shapes": 
+# # - SingleIndex (easy to read for humans, compatible with datapackage standard, small file size)
+# #   - Fileformat: CSV, SQLite
+# # - MultiIndex (easy to read into GAMS, not compatible with datapackage standard, small file size)
+# #   - Fileformat: CSV, Excel
+# # - Stacked (compatible with data package standard, large file size, many rows, too many for Excel) 
+# #   - Fileformat: CSV
+# # 
+# # The different shapes need to be created internally befor they can be saved to files. Takes about 1 minute to run.
 
-# In[ ]:
+# # In[ ]:
 
 
-os.chdir(out_path)
-for res_key, df in combined_singleindex.items():
-    table = 'time_series_' + res_key
-    df = df.copy()
-    df.index = df.index.strftime('%Y-%m-%dT%H:%M:%SZ')
-    cet_col_name = info_cols['cet']
-    df[cet_col_name] = (df[cet_col_name].dt.strftime('%Y-%m-%dT%H:%M:%S%z'))
-    df.to_sql(table, sqlite3.connect('time_series.sqlite'),
-              if_exists='replace', index_label=info_cols['utc'])
+# combined_singleindex = {}
+# combined_multiindex = {}
+# combined_stacked = {}
+# for res_key, df in combined.items():
+#     if df.empty:
+#         continue
 
+# #    # Round floating point numbers to 2 digits
+# #    for col_name, col in df.iteritems():
+# #        if col_name[0] in info_cols.values():
+# #            pass
+# #        elif col_name[2] == 'profile':
+# #            df[col_name] = col.round(4)
+# #        else:
+# #            df[col_name] = col.round(3)
 
-# ## Write to Excel
+#     # MultIndex
+#     combined_multiindex[res_key + '_multiindex'] = df
 
-# Writing the full tables to Excel takes extremely long. As a workaround, only the timestamp-columns are exported. The rest of the data can than be inserted manually from the `_multindex.csv` files.
+#     # SingleIndex
+#     df_singleindex = df.copy()
+#     # use first 3 levels of multiindex to create singleindex
+#     df_singleindex.columns = [
+#         col_name[0] if col_name[0] in info_cols.values()
+#         else '_'.join([level for level in col_name[0:3] if not level == ''])
+#         for col_name in df.columns.values]
 
-# In[ ]:
+#     combined_singleindex[res_key + '_singleindex'] = df_singleindex
 
+#     # Stacked
+#     stacked = df.copy().drop(columns=info_cols['cet'], level=0)
+#     stacked.columns = stacked.columns.droplevel(['source', 'web', 'unit'])
+#     # Concatenate all columns below each other (="stack").
+#     # df.transpose().stack() is faster than stacking all column levels
+#     # seperately
+#     stacked = stacked.transpose().stack(dropna=True).to_frame(name='data')
+#     combined_stacked[res_key + '_stacked'] = stacked
 
-os.chdir(out_path)
-writer = pd.ExcelWriter('time_series.xlsx')
-for res_key, df in data_sets.items():
-    # Need to convert CE(S)T-timestamps to tz-naive, otherwise Excel converts
-    # them back to UTC
-    df.loc[:,(info_cols['cet'], '', '', '', '', '')].dt.tz_localize(None).to_excel(writer, res_key)
-    filename = 'tsos_' + res_key + '.csv'
-    df.to_csv(filename, float_format='%.4f', date_format='%Y-%m-%dT%H:%M:%SZ')
-for res_key, df in entso_e.items():
-    df.loc[:,(info_cols['cet'], '', '', '', '', '')].dt.tz_localize(None).to_excel(writer, res_key+ ' ENTSO-E')
-    filename = 'entso_e_' + res_key + '.csv'
-    df.to_csv(filename, float_format='%.4f', date_format='%Y-%m-%dT%H:%M:%SZ')
-writer.save()
 
+# # ## Write to SQLite-database
 
-# ## Write to CSV
+# # This file format is required for the filtering function on the OPSD website. This takes ~3 minutes to complete.
 
-# This takes about 10 minutes to complete.
+# # In[ ]:
 
-# In[ ]:
 
+# os.chdir(out_path)
+# for res_key, df in combined_singleindex.items():
+#     table = 'time_series_' + res_key
+#     df = df.copy()
+#     df.index = df.index.strftime('%Y-%m-%dT%H:%M:%SZ')
+#     cet_col_name = info_cols['cet']
+#     df[cet_col_name] = (df[cet_col_name].dt.strftime('%Y-%m-%dT%H:%M:%S%z'))
+#     df.to_sql(table, sqlite3.connect('time_series.sqlite'),
+#               if_exists='replace', index_label=info_cols['utc'])
 
-os.chdir(out_path)
-# itertoools.chain() allows iterating over multiple dicts at once
-for res_stacking_key, df in itertools.chain(
-    combined_singleindex.items(),
-    combined_multiindex.items(),
-    combined_stacked.items()):
 
-    df = df.copy()
+# # ## Write to Excel
 
-    # convert the format of the cet_cest-timestamp to ISO-8601
-    if not res_stacking_key.split('_')[1] == 'stacked':
-        df.iloc[:, 0] = df.iloc[:, 0].dt.strftime('%Y-%m-%dT%H:%M:%S%z')  # https://frictionlessdata.io/specs/table-schema/#date
-    filename = 'time_series_' + res_stacking_key + '.csv'
-    df.to_csv(filename, float_format='%.4f',
-              date_format='%Y-%m-%dT%H:%M:%SZ')
+# # Writing the full tables to Excel takes extremely long. As a workaround, only the timestamp-columns are exported. The rest of the data can than be inserted manually from the `_multindex.csv` files.
 
+# # In[ ]:
 
-# ## Create metadata
 
-# This section: create the metadata, both general and column-specific. All metadata we be stored as a JSON file. Takes 10s to run.
+# os.chdir(out_path)
+# writer = pd.ExcelWriter('time_series.xlsx')
+# for res_key, df in data_sets.items():
+#     # Need to convert CE(S)T-timestamps to tz-naive, otherwise Excel converts
+#     # them back to UTC
+#     df.loc[:,(info_cols['cet'], '', '', '', '', '')].dt.tz_localize(None).to_excel(writer, res_key)
+#     filename = 'tsos_' + res_key + '.csv'
+#     df.to_csv(filename, float_format='%.4f', date_format='%Y-%m-%dT%H:%M:%SZ')
+# for res_key, df in entso_e.items():
+#     df.loc[:,(info_cols['cet'], '', '', '', '', '')].dt.tz_localize(None).to_excel(writer, res_key+ ' ENTSO-E')
+#     filename = 'entso_e_' + res_key + '.csv'
+#     df.to_csv(filename, float_format='%.4f', date_format='%Y-%m-%dT%H:%M:%SZ')
+# writer.save()
 
-# In[ ]:
 
+# # ## Write to CSV
 
-os.chdir(out_path)
-make_json(combined, info_cols, version, changes, headers, areas,
-          start_from_user, end_from_user)
+# # This takes about 10 minutes to complete.
 
+# # In[ ]:
 
-# ## Write checksums.txt
 
-# We publish SHA-checksums for the outputfiles on GitHub to allow verifying the integrity of outputfiles on the OPSD server.
+# os.chdir(out_path)
+# # itertoools.chain() allows iterating over multiple dicts at once
+# for res_stacking_key, df in itertools.chain(
+#     combined_singleindex.items(),
+#     combined_multiindex.items(),
+#     combined_stacked.items()):
 
-# In[ ]:
+#     df = df.copy()
 
+#     # convert the format of the cet_cest-timestamp to ISO-8601
+#     if not res_stacking_key.split('_')[1] == 'stacked':
+#         df.iloc[:, 0] = df.iloc[:, 0].dt.strftime('%Y-%m-%dT%H:%M:%S%z')  # https://frictionlessdata.io/specs/table-schema/#date
+#     filename = 'time_series_' + res_stacking_key + '.csv'
+#     df.to_csv(filename, float_format='%.4f',
+#               date_format='%Y-%m-%dT%H:%M:%SZ')
 
-os.chdir(out_path)
-files = os.listdir(out_path)
 
-# Create checksums.txt in the output directory
-with open('checksums.txt', 'w') as f:
-    for file_name in files:
-        if file_name.split('.')[-1] in ['csv', 'sqlite', 'xlsx']:
-            file_hash = get_sha_hash(file_name)
-            f.write('{},{}\n'.format(file_name, file_hash))
+# # ## Create metadata
 
-# Copy the file to root directory from where it will be pushed to GitHub,
-# leaving a copy in the version directory for reference
-copyfile('checksums.txt', os.path.join(home_path, 'checksums.txt'))
+# # This section: create the metadata, both general and column-specific. All metadata we be stored as a JSON file. Takes 10s to run.
+
+# # In[ ]:
+
+
+# os.chdir(out_path)
+# make_json(combined, info_cols, version, changes, headers, areas,
+#           start_from_user, end_from_user)
+
+
+# # ## Write checksums.txt
+
+# # We publish SHA-checksums for the outputfiles on GitHub to allow verifying the integrity of outputfiles on the OPSD server.
+
+# # In[ ]:
+
+
+# os.chdir(out_path)
+# files = os.listdir(out_path)
+
+# # Create checksums.txt in the output directory
+# with open('checksums.txt', 'w') as f:
+#     for file_name in files:
+#         if file_name.split('.')[-1] in ['csv', 'sqlite', 'xlsx']:
+#             file_hash = get_sha_hash(file_name)
+#             f.write('{},{}\n'.format(file_name, file_hash))
+
+# # Copy the file to root directory from where it will be pushed to GitHub,
+# # leaving a copy in the version directory for reference
+# copyfile('checksums.txt', os.path.join(home_path, 'checksums.txt'))
 

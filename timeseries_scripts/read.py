@@ -77,14 +77,14 @@ def read_entso_e_transparency(
         dayfirst=False,
         decimal='.',
         thousands=None,
-        usecols=cols.keys(),
+        usecols=cols.keys()
     )
 
     # rename columns to comply with other data
     df_raw.rename(columns=cols, inplace=True)
 
     if dataset_name == 'Actual Generation per Production Type':
-        # keep only renewables columns def. in source variable_type
+        # keep only columns def. in source variable_type
         df_raw = df_raw[df_raw['variable'].isin(variable_type.keys())]
         # rename variable_type names 
         df_raw.replace({'variable': variable_type}, inplace=True)
