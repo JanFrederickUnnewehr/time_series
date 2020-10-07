@@ -12,8 +12,8 @@ ENTSO-E Transparency FTP:
         path: TP_export/AggregatedGenerationPerType/
         filename: '{u_start.year}_{u_start.month}_AggregatedGenerationPerType.csv'
         frequency: monthly
-        start: 2018-12-01
-        end: 2020-01-31 #recent
+        start: 2014-12-01
+        end: recent
         filetype: csv
         resolution:
             - 15min

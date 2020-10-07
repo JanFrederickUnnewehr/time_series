@@ -31,7 +31,7 @@ def read_entso_e_transparency(
         stacked,
         unstacked,
         append_headers,
-        variable_type,
+        variable_type=None,
         **kwargs):
     '''
     Read a .csv file from ENTSO-E TRansparency into a DataFrame.
@@ -84,6 +84,10 @@ def read_entso_e_transparency(
     df_raw.rename(columns=cols, inplace=True)
 
     if dataset_name == 'Actual Generation per Production Type':
+        if variable_type == None:
+            logger.warning('Please provide variable types in the source file.')
+            return
+            
         # keep only columns def. in source variable_type
         df_raw = df_raw[df_raw['variable'].isin(variable_type.keys())]
         # rename variable_type names 
