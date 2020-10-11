@@ -771,6 +771,7 @@ Elia:
             isEliaConnected: ''
         frequency: quarterly
         start: 2013-01-01
+        end: recent
         filetype: xls
         resolution:
             - 15min

@@ -23,6 +23,7 @@ from time import sleep
 import pickle
 from . import terna
 import paramiko
+from paramiko.ssh_exception import BadHostKeyException, AuthenticationException, SSHException
 
 logger = logging.getLogger(__name__)
 logger.setLevel('DEBUG')
